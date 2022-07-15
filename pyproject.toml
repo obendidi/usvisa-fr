@@ -1,12 +1,12 @@
 [tool.poetry]
-name = "python-lib-template"
+name = "usvisa-fr"
 version = "0.1.0"
 description = "Simple template for python libs with poetry and mkdocs."
 authors = ["Ouail Bendidi <ouail.bendidi@gmail.com>"]
 license = "MIT"
 readme = "README.md"
-repository = "https://github.com/obendidi/python-lib-template"
-homepage = "https://github.com/obendidi/python-lib-template"
+repository = "https://github.com/obendidi/usvisa-fr"
+homepage = "https://github.com/obendidi/usvisa-fr"
 keywords = []
 classifiers = [
   "Development Status :: 3 - Alpha",
@@ -14,28 +14,21 @@ classifiers = [
   "License :: OSI Approved :: MIT License",
   "Operating System :: OS Independent",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.7",
-  "Programming Language :: Python :: 3.8",
-  "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3 :: Only",
 ]
 include = ["LICENSE"]
 
 [tool.poetry.dependencies]
-python = "^3.7"
+python = "^3.10"
+rich = "^12.5.1"
+beartype = "^0.10.4"
 
 [tool.poetry.dev-dependencies]
-black = {version = "^21.9b0", allow-prereleases = true}
-mypy = "^0.930"
-isort = "^5.9.3"
+black = "^22.6.0"
+isort = "^5.10.1"
 flake8 = "^4.0.1"
-pytest = "^6.2.5"
-pytest-cov = "^3.0.0"
-pre-commit = "^2.15.0"
-mock = "^4.0.3"
-mkautodoc = "^0.1.0"
-mkdocs-material = "^8.1.4"
+mypy = "^0.961"
 
 
 [build-system]
