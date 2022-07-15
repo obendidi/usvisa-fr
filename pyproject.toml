@@ -1,34 +1,28 @@
 [tool.poetry]
 name = "usvisa-fr"
 version = "0.1.0"
-description = "Simple template for python libs with poetry and mkdocs."
+description = ""
 authors = ["Ouail Bendidi <ouail.bendidi@gmail.com>"]
 license = "MIT"
-readme = "README.md"
-repository = "https://github.com/obendidi/usvisa-fr"
-homepage = "https://github.com/obendidi/usvisa-fr"
-keywords = []
-classifiers = [
-  "Development Status :: 3 - Alpha",
-  "Intended Audience :: Developers",
-  "License :: OSI Approved :: MIT License",
-  "Operating System :: OS Independent",
-  "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.10",
-  "Programming Language :: Python :: 3 :: Only",
-]
-include = ["LICENSE"]
+
 
 [tool.poetry.dependencies]
 python = "^3.10"
 rich = "^12.5.1"
 beartype = "^0.10.4"
+pydantic = "^1.9.1"
+selenium = "^4.3.0"
+webdriver-manager = "^3.8.1"
+python-dotenv = "^0.20.0"
+python-dateutil = "^2.8.2"
+tenacity = "^8.0.1"
 
 [tool.poetry.dev-dependencies]
 black = "^22.6.0"
 isort = "^5.10.1"
 flake8 = "^4.0.1"
 mypy = "^0.961"
+types-python-dateutil = "^2.8.18"
 
 
 [build-system]
@@ -59,7 +53,7 @@ profile = "black"
 
 [tool.pytest.ini_options]
 # add your package name here
-addopts = "-ra -q -vv --cov={{package-name}} --cov-report=term"
+addopts = "-ra -q -vv --cov=usvisa_fr --cov-report=term"
 
 [tool.coverage.run]
 branch = true
