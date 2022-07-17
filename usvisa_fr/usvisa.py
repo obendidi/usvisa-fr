@@ -1,8 +1,9 @@
 import logging
+import time
 import typing as tp
 from datetime import datetime
 
-from selenium.common.exceptions import WebDriverException
+from selenium.common.exceptions import WebDriverException, NoSuchElementException
 from selenium.webdriver import Firefox
 from selenium.webdriver.common.by import By
 from tenacity import (
@@ -11,8 +12,8 @@ from tenacity import (
     retry_if_exception_type,
     stop_after_attempt,
     stop_after_delay,
+    wait_random_exponential,
     wait_fixed,
-    wait_random,
 )
 
 from usvisa_fr.config import settings
@@ -26,7 +27,7 @@ retry_policy = retry(
     retry=retry_if_exception_type(WebDriverException),
     reraise=True,
     stop=(stop_after_delay(900) | stop_after_attempt(500)),
-    wait=wait_fixed(2) + wait_random(0, 5),
+    wait=wait_fixed(10) + wait_random_exponential(multiplier=1, max=60),
     before_sleep=before_sleep_log(logger, logging.WARNING),
 )
 
@@ -40,6 +41,7 @@ def sign_in(browser: Firefox) -> None:
         By.XPATH,
         "/html/body/div[5]/main/div[3]/div/div[1]/div/form/div[3]/label/div",
     ).click()
+    time.sleep(0.5)
     browser.find_element(
         By.XPATH,
         "/html/body/div[5]/main/div[3]/div/div[1]/div/form/p[1]/input",
@@ -65,9 +67,15 @@ def find_new_appointement(
 ) -> tp.Optional[datetime]:
     browser.get(f"{settings.BASE_URI}/schedule/37982683/appointment")
 
+    if _check_consulate_date_not_available(browser):
+        logger.error("There are no available appointments at the selected location.")
+        logger.error("Sleeping for 10 minutes.")
+        time.sleep(600)
+        return None
+
     # click on date input field to show calendar
     browser.find_element(By.ID, "appointments_consulate_appointment_date_input").click()
-
+    logger.info("Parsing calendar ...")
     while True:
         # get moth and year
         mm_yyy = browser.find_element(
@@ -80,23 +88,26 @@ def find_new_appointement(
         logger.info(f"Looking in '{mm_yyy}' calendar ...")
         _day = _process_calendar(browser)
         if _day is not None:
-            logger.debug(f"An appointement date is found: {_day} {mm_yyy}")
             _time = _select_time(browser)
             new_appointement = datetime.strptime(
                 f"{_day} {mm_yyy} {_time}", "%d %B %Y %H:%M"
             )
-            logger.debug(f"An appointement datetime is found: {new_appointement}")
             if new_appointement < current_appointement:
                 logger.info(f"\t => Found new appointement at '{new_appointement}'")
+                # Submit
                 browser.find_element(By.ID, "appointments_submit_action").click()
+                # Confirm
                 browser.find_element(By.XPATH, "/html/body/div[6]/div/div/a[2]").click()
                 logger.info(f"\t => New appointement at '{new_appointement}' booked.")
                 return new_appointement
             else:
-                logger.info(f"\t => No appointements found in '{mm_yyy}'.")
+                logger.warning(
+                    f"\t => Found appointement at '{new_appointement}' "
+                    f"but it is >= '{current_appointement}', ignoring."
+                )
             break
 
-        logger.info(f"\t => No appointements found in '{mm_yyy}'.")
+        logger.warning(f"\t => No appointements found in '{mm_yyy}'.")
 
         # check next month and repeat
         browser.find_element(By.XPATH, "/html/body/div[5]/div[2]/div/a").click()
@@ -134,3 +145,14 @@ def _select_time(browser: Firefox) -> str:
         break
 
     return value
+
+
+def _check_consulate_date_not_available(browser: Firefox) -> bool:
+    try:
+        element = browser.find_element(By.ID, "consulate_date_time_not_available")
+        style = element.get_attribute("style")
+        if style.strip() == "display: none;":
+            return False
+        return True
+    except NoSuchElementException:
+        return False

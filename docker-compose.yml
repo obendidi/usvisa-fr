@@ -1,0 +1,9 @@
+version: "3.8"
+services:
+  app:
+    build: .
+    image: usvisa-fr:latest
+    environment:
+      - DEBUG=false
+      - USVISA_USERNAME
+      - USVISA_PASSWORD

@@ -21,7 +21,7 @@ from usvisa_fr.usvisa import (
 )
 
 logging.basicConfig(
-    level="INFO", format="%(message)s", datefmt="[%X]", handlers=[RichHandler()]
+    level="INFO", format="%(message)s", datefmt="[%x %X]", handlers=[RichHandler()]
 )
 logger = logging.getLogger(__name__)
 
@@ -36,6 +36,7 @@ def main(browser: Firefox):
     logger.info(f"Signing in to: {settings.BASE_URI}")
     sign_in(browser)
     logger.info("\t => Successfully signed in.")
+    time.sleep(1)
 
     logger.info("Getting current appointment date ...")
     current_appointement = get_current_appointement_date(browser)
@@ -43,6 +44,7 @@ def main(browser: Firefox):
         f"\t => Current appointement is at '{current_appointement}' "
         f"(in {current_appointement - datetime.now()})"
     )
+    time.sleep(1)
     while True:
         new_appointement = find_new_appointement(
             browser, current_appointement=current_appointement
@@ -56,14 +58,16 @@ def main(browser: Firefox):
                 )
             # TODO: Send notification telegram ?
 
-        logger.info("Sleeping for 30 seconds ...")
-        time.sleep(30)
+        logger.info("Sleeping for 1 minute ...")
+        time.sleep(60)
 
 
 if __name__ == "__main__":
     try:
         browser = get_browser(headless=not settings.DEBUG)
         main(browser)
+    except KeyboardInterrupt:
+        logger.info("Exiting ...")
     finally:
         logger.info("Closing browser.")
         browser.close()
