@@ -7,3 +7,5 @@ services:
       - DEBUG=false
       - USVISA_USERNAME
       - USVISA_PASSWORD
+    volumes:
+      - ./APPOINTEMENTS_CHANGELOG.md:/usvisa-fr/APPOINTEMENTS_CHANGELOG.md
