@@ -1,14 +1,13 @@
 import logging
+import time
 import typing as tp
 from datetime import datetime
-import time
 
 from bs4 import BeautifulSoup
+from dateutil.parser import parse as parse_date
 
 from usvisa_fr.client import UsVisaClient
 from usvisa_fr.logger import RichHandler
-
-from dateutil.parser import parse as parse_date
 
 logging.basicConfig(
     level="INFO", format="%(message)s", datefmt="[%x %X]", handlers=[RichHandler()]
@@ -18,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 def get_current_appointement_date(client: UsVisaClient) -> datetime:
     logger.info("Getting current appointment date ...")
-    resp = client.get("/groups/18399708")
+    resp = client.get("/groups/35192291")
     resp.raise_for_status()
     soup = BeautifulSoup(resp.content, "lxml")
     param = soup.find("p", attrs={"class": "consular-appt"})
@@ -35,7 +34,10 @@ def get_current_appointement_date(client: UsVisaClient) -> datetime:
 def get_closest_availlable_apointement(client: UsVisaClient) -> tp.Optional[datetime]:
     logger.info("Getting closest available appointement ...")
     params = {"appointments[expedite]": "false"}
-    resp = client.get("/schedule/37982683/appointment/days/44.json", params=params)
+    headers = {"X-Requested-With": "XMLHttpRequest", "X-Csrf-Token": client.csrf_token}
+    resp = client.get(
+        "/schedule/49110231/appointment/days/44.json", params=params, headers=headers
+    )
     resp.raise_for_status()
     dates = resp.json()
     if not dates:
@@ -49,7 +51,9 @@ def get_closest_availlable_apointement(client: UsVisaClient) -> tp.Optional[date
 
     # get time
     params = {"appointments[expedite]": "false", "date": str_date}
-    resp = client.get("/schedule/37982683/appointment/times/44.json", params=params)
+    resp = client.get(
+        "/schedule/49110231/appointment/times/44.json", params=params, headers=headers
+    )
     resp.raise_for_status()
     times = resp.json().get("available_times", [])
     if not times:
@@ -65,11 +69,13 @@ def book_new_appointment(client: UsVisaClient, new_appointement: datetime) -> bo
     logger.info(f"Booking new appointement at '{new_appointement}' ...")
     # get crsf data
     csrf_param, csrf_token = client.get_crsf(
-        client.get("/schedule/37982683/appointment").content
+        client.get("/schedule/49110231/appointment").content
     )
 
     headers = {
         "Content-Type": "application/x-www-form-urlencoded",
+        "X-Requested-With": "XMLHttpRequest",
+        "X-Csrf-Token": client.csrf_token,
     }
     _date, _time = new_appointement.strftime("%Y-%m-%d %H:%M").split()
 
@@ -81,7 +87,7 @@ def book_new_appointment(client: UsVisaClient, new_appointement: datetime) -> bo
         "appointments[consulate_appointment][date]": _date,
         "appointments[consulate_appointment][time]": _time,
     }
-    resp = client.post("/schedule/37982683/appointment", headers=headers, data=data)
+    resp = client.post("/schedule/49110231/appointment", headers=headers, data=data)
     if resp.status_code != 302:
         logger.error(
             f"\t => Failed to book new appointment at '{new_appointement}' ({resp})"
@@ -92,7 +98,7 @@ def book_new_appointment(client: UsVisaClient, new_appointement: datetime) -> bo
     if resp.next_request is None:
         raise RuntimeError()
 
-    expected_redirect = f"{client.base_url}schedule/37982683/appointment/instructions"
+    expected_redirect = f"{client.base_url}schedule/49110231/appointment/instructions"
     if resp.next_request.url != expected_redirect:
         logger.error(
             f"Couldn't book new appointement at '{new_appointement}'."

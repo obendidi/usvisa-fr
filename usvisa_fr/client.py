@@ -33,20 +33,20 @@ class UsVisaClient(Client):
         logger.info(f"Signing in to: {self.base_url}")
         resp = self.get("/users/sign_in")
         resp.raise_for_status()
-        csrf_param, csrf_token = self.get_crsf(resp.content)
+        self.csrf_param, self.csrf_token = self.get_crsf(resp.content)
 
         headers = {
             "Content-Type": "application/x-www-form-urlencoded",
         }
         data = {
-            csrf_param: csrf_token,
+            self.csrf_param: self.csrf_token,
             "user[email]": settings.USVISA_USERNAME,
             "user[password]": settings.USVISA_PASSWORD,
             "policy_confirmed": 1,
         }
         resp = self.post("/users/sign_in", headers=headers, data=data)
-        if resp.status_code != 302:
-            raise RuntimeError(f"Authentification Error: {resp}")
+        if resp.status_code not in [302, 200]:
+            raise RuntimeError(f"Authentification Error: {resp}\n{resp.content}")
         logger.info("\t => Sign in successful.")
 
     def __enter__(self: T) -> T:

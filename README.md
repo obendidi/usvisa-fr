@@ -15,8 +15,8 @@ This project is only specific to the US Paris embassy Non-Immigrant-Visas (sever
 - You need to have finished all the steps to ask for a visa in [https://ais.usvisa-info.com/en-fr/niv](https://ais.usvisa-info.com/en-fr/niv)
 - You need to have one appointement already booked, even if it's in 2 years.
 - Prepare a `.env` file with the following variables:
-  - `USVISA_USERNAME`: Your email address.
-  - `USVISA_PASSWORD`: Your password.
+  - `USVISA_USERNAME`= Your email address.
+  - `USVISA_PASSWORD`= Your password.
   (make sure to not share your credentials anywhere)
 
 - Build the docker image: `docker-compose build`
